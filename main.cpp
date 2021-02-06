@@ -14,6 +14,7 @@
 
 pthread_t thread_pull[THREAD_PULL_SIZE];
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond_var = PTHREAD_COND_INITIALIZER;
 std::queue<int> job_queue;
 
 using std::cerr;
@@ -100,12 +101,11 @@ int main()
             return 1;
         }
         cerr << "socket accepted" << client_socket;
-        //pthread_t thread;
+
         pthread_mutex_lock(&mutex);
         job_queue.push(client_socket);
+        pthread_cond_signal(&cond_var);
         pthread_mutex_unlock(&mutex);
-        //pthread_create(&thread, NULL, handle_connection, (void*)&client_socket);
-        //pthread_join(thread, NULL);
     }
     
     // Убираем за собой
@@ -118,12 +118,12 @@ void* thread_function(void* arg) {
     while(1) {
         int client_socket = -1;
         pthread_mutex_lock(&mutex);
-        if(!job_queue.empty())
-        {
+        if(job_queue.empty()) {
+             pthread_cond_wait(&cond_var, &mutex);
+        }
+        if(!job_queue.empty()) {
             client_socket = job_queue.front();
-            cerr << "socket thread" << client_socket<<"\n";
             job_queue.pop();
-            //cerr << "job_queue empty? " << (job_queue.empty() ? "yes":"no") << "\n";
         }
         pthread_mutex_unlock(&mutex);
         if(client_socket != -1) handle_connection(client_socket);
