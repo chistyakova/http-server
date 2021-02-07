@@ -22,11 +22,11 @@ using std::cerr;
 void handle_connection(int client_socket);
 void* thread_function(void* arg);
 
-int main()
+int main(int argc, char **argv)
 {
     daemon(1, 1); // демонизируем
     
-    int fd_out = open("main.pid", O_RDWR|O_CREAT, 0666);
+    int fd_out = open("main.pid", O_RDWR|O_CREAT, 0666); // сохраняем pid в файл
     if(fd_out == -1)
         cerr << "open file failed\n";
     
@@ -35,6 +35,19 @@ int main()
     if (write(fd_out, buffer, strlen(buffer)) == -1)
         cerr << "write file failed\n";
     close(fd_out);
+    
+    int res = 0;
+    std::string ip, port, directory;
+    while ( (res = getopt(argc,argv,"h:p:d:")) != -1){ // читаем параметры
+        switch (res){
+        case 'h': ip = optarg; break;
+        case 'p': port = optarg; break;
+        case 'd': directory = optarg; break;
+        case '?': printf("Error found !\n");break;
+        }
+    }
+    chdir(directory.c_str()); // задаем текущую директорию
+    printf("Current directory - %s\n", directory.c_str());
     
     // создание потоков для дальнейшего использования
     for(int i=0; i<THREAD_PULL_SIZE; ++i) {
@@ -57,7 +70,7 @@ int main()
 
     // Инициализируем структуру, хранящую адрес сокета - addr.
     // HTTP-сервер будет висеть на 8000-м порту локалхоста
-    int result = getaddrinfo(NULL, "8000", &hints, &addr);
+    int result = getaddrinfo(ip.c_str(), port.c_str(), &hints, &addr);
 
     // Если инициализация структуры адреса завершилась с ошибкой,
     // выведем сообщением об этом и завершим выполнение программы 
