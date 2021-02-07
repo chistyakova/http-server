@@ -24,6 +24,18 @@ void* thread_function(void* arg);
 
 int main()
 {
+    daemon(1, 1); // демонизируем
+    
+    int fd_out = open("main.pid", O_RDWR|O_CREAT, 0666);
+    if(fd_out == -1)
+        cerr << "open file failed\n";
+    
+    char buffer[10];
+    sprintf(buffer, "%d\n", getpid());
+    if (write(fd_out, buffer, strlen(buffer)) == -1)
+        cerr << "write file failed\n";
+    close(fd_out);
+    
     // создание потоков для дальнейшего использования
     for(int i=0; i<THREAD_PULL_SIZE; ++i) {
         pthread_create(&thread_pull[i], NULL, thread_function, NULL);
