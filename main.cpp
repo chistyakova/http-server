@@ -159,7 +159,7 @@ void* thread_function(void* arg) {
 void handle_connection(int client_socket){
     const int buffer_size = 1024;
     char buf[buffer_size];
-    cerr << "socket handler" << client_socket;
+    cerr << "socket handler" << client_socket << "\n";
     int result = recv(client_socket, buf, buffer_size, 0);
     
     std::stringstream response; // сюда будет записываться ответ клиенту
@@ -177,9 +177,14 @@ void handle_connection(int client_socket){
         // В буфере запроса.
         buf[result] = '\0';
         std::string message = buf;
-        auto pos1 = message.find("GET");
-        auto pos2 = message.find("HTTP");
-        auto request = message.substr(pos1+4, pos2-5);
+        auto pos1 = message.find("GET")+4;
+        auto pos2 = message.find("HTTP")-5;
+        auto request = message.substr(pos1, pos2);
+        auto pos_args = request.find("?");
+        if(pos_args != std::string::npos) {
+            request = request.substr(0, pos_args);
+        }
+        cerr << "request - " << request << "\n";
         
         // Данные успешно получены
         // формируем тело ответа (HTML)
