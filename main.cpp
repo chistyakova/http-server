@@ -208,6 +208,9 @@ void handle_connection(int client_socket){
                 std::cerr <<  resultStr << "\n";
         } else {
             response << "HTTP/1.0 404 NOT FOUND\r\n"
+            << "Content-length: "
+            << 0
+            << "\r\n"
             << "Content-Type: text/html\r\n\r\n";
         }
 
