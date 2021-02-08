@@ -193,11 +193,11 @@ void handle_connection(int client_socket){
         std::ifstream istrm("."+request, std::ios::binary);
         std::cerr << "1" << request << "1\n";
         if(istrm.is_open()) {
-            std::string s;
-            std::string resultStr;
-            while (istrm >> s) {
-                resultStr+=s;
-            }
+            
+            std::ostringstream ss;
+            ss << istrm.rdbuf(); // reading data
+            std::string resultStr = ss.str();
+      
             // Формируем весь ответ вместе с заголовками
                 response << "HTTP/1.1 200 OK\r\n"
                 << "Version: HTTP/1.1\r\n"
